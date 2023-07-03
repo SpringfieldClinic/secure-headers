@@ -4,7 +4,7 @@ namespace SpringfieldClinic\SecureHeaders;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 
 class SecureHeadersMiddleware
 {
@@ -15,7 +15,9 @@ class SecureHeadersMiddleware
     {
         $response = $next($request);
 
-        $headers = (new SecureHeaders(\config('secure-headers', [])))->headers();
+        $headers = Cache::remember('secure-headers', 300, function () {
+            return (new SecureHeaders(\config('secure-headers', [])))->headers();
+        });
 
         foreach ($headers as $key => $value) {
             $response->headers->set($key, $value, true);
